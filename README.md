@@ -15,171 +15,142 @@ However, Quicksort's real-world performance is heavily dependent on **how the pi
 This repository explores the evolution of Quicksort by implementing, analyzing, and benchmarking various pivot selection strategies. It traces the journey from the classic, naive implementations of the 1960s to modern, hardware-optimized hybrid algorithms like `pdqsort`.
 # Pseudo code
 ## 1. Standard Quicksort Framework & Basic Pivots
-     --- MAIN QUICKSORT FRAMEWORK -- //
-    Function Quicksort_Classic(A, low, high):
-        If low < high:
-            // 1. Choose pivot index using one of the strategies below
-            pivot_idx = Choose_Pivot(A, low, high) 
-            
-            // 2. Swap pivot to the end of the array for easy partitioning
-            Swap(A[pivot_idx], A[high])
-            
-            // 3. Partition and get the exact position of the pivot
-            pi = Partition(A, low, high)
-            
-            // 4. Recursively sort the two halves
-            Quicksort_Classic(A, low, pi - 1)
-            Quicksort_Classic(A, pi + 1, high)
-    
-    // --- LOMUTO PARTITION SCHEME ---
-    Function Partition(A, low, high):
-        pivot_value = A[high]
-        i = low - 1
-        
-        For j from low to high - 1:
-            If A[j] <= pivot_value:
-                i = i + 1
-                Swap(A[i], A[j])
-                
-        Swap(A[i + 1], A[high])
-        Return i + 1
+     ALGORITHM QuickSort(A[l..r])
+     //Sorts a subarray by quicksort
+     //Input: Subarray of array A[0..n-1], defined by its left and right indices l and r
+     //Output: Subarray A[l..r] sorted in nondecreasing order
+     if l < r
+         p_idx ← ChoosePivot(A, l, r)  // Choose pivot using one of the strategies below
+         swap(A[l], A[p_idx])          // Move pivot to the first position
+         s ← Partition(A, l, r)        // Partition the subarray
+         QuickSort(A[l..s - 1])
+         QuickSort(A[s + 1..r])
+     
+     ALGORITHM Partition(A[l..r])
+     //Partitions a subarray by Hoare's algorithm
+     //Input: Subarray of array A[0..n-1], defined by its left and right indices l and r (l < r)
+     //Output: Partition of A[l..r], with the split position returned as this function's value
+     p ← A[l]
+     i ← l; j ← r + 1
+     repeat
+         repeat i ← i + 1 until A[i] ≥ p or i ≥ r
+         repeat j ← j - 1 until A[j] ≤ p
+         swap(A[i], A[j])
+     until i ≥ j
+     swap(A[i], A[j]) // Undo last swap
+     swap(A[l], A[j])
+     return j
 ### Pivot Selection Strategies (Choose_Pivot implementations):
-    // 1. First Pivot
-    Function Choose_Pivot_First(A, low, high):
-        Return low
-    
-    // 2. Last Pivot
-    Function Choose_Pivot_Last(A, low, high):
-        Return high
-    
-    // 3. Middle Pivot
-    Function Choose_Pivot_Middle(A, low, high):
-        Return low + (high - low) / 2
-    
-    // 4. Random Pivot
-    Function Choose_Pivot_Random(A, low, high):
-        Return Random_Integer(from low to high)
-    
-    // 5. Median of 3
-    Function Choose_Pivot_MedianOf3(A, low, high):
-        mid = low + (high - low) / 2
-        // Sort A[low], A[mid], A[high] to find the median value
-        If A[low] > A[mid]: Swap(A[low], A[mid])
-        If A[low] > A[high]: Swap(A[low], A[high])
-        If A[mid] > A[high]: Swap(A[mid], A[high])
-        
-        // A[mid] is now the median
-        Return mid
+     ALGORITHM ChoosePivotFirst(A[l..r])
+     //Input: Subarray A[l..r]
+     //Output: The index of the first element
+     return l
+     
+     ALGORITHM ChoosePivotLast(A[l..r])
+     //Input: Subarray A[l..r]
+     //Output: The index of the last element
+     return r
+     
+     ALGORITHM ChoosePivotMiddle(A[l..r])
+     //Input: Subarray A[l..r]
+     //Output: The index of the middle element
+     return l + floor((r - l) / 2)
+     
+     ALGORITHM ChoosePivotRandom(A[l..r])
+     //Input: Subarray A[l..r]
+     //Output: A random index between l and r
+     return RandomInteger(l, r)
+     
+     ALGORITHM ChoosePivotMedianOf3(A[l..r])
+     //Input: Subarray A[l..r]
+     //Output: The index of the median value among the first, middle, and last elements
+     mid ← l + floor((r - l) / 2)
+     return MedianOf3(A, l, mid, r) // Assuming MedianOf3 function is already defined
 ## 2. Median of Medians
-    Function Choose_Pivot_MoM(A, low, high):
-        num_elements = high - low + 1
-        
-        // If the array has 5 or fewer elements, use insertion sort and return the median
-        If num_elements <= 5:
-            InsertionSort(A, low, high)
-            Return low + num_elements / 2
-            
-        // Divide the array into blocks of 5 elements
-        num_blocks = Ceiling(num_elements / 5)
-        Create median_array of size num_blocks
-        
-        For i from 0 to num_blocks - 1:
-            start = low + i * 5
-            end = Min(start + 4, high)
-            InsertionSort(A, start, end)
-            median_array[i] = A[start + (end - start) / 2]
-            
-        // Recursively find the median of the median_array
-        pivot_value = Choose_Pivot_MoM(median_array, 0, num_blocks - 1)
-        
-        // Find and return the index of pivot_value in the original array A
-        Return Index_Of(pivot_value in array A from low to high)
+     ALGORITHM ChoosePivotMedianOfMedians(A[l..r])
+     //Input: Subarray A[l..r]
+     //Output: The index of the median of medians
+     n ← r - l + 1
+     if n ≤ 5
+         InsertionSort(A[l..r])
+         return l + floor(n / 2)
+     
+     // Divide the array into groups of 5 elements
+     numGroups ← ceil(n / 5)
+     for i ← 0 to numGroups - 1
+         groupLeft ← l + i * 5
+         groupRight ← min(l + i * 5 + 4, r)
+         InsertionSort(A[groupLeft..groupRight])
+         medianIdx ← groupLeft + floor((groupRight - groupLeft) / 2)
+         swap(A[l + i], A[medianIdx]) // Move medians to the front of the subarray
+     
+     // Recursively find the median of the medians
+     return ChoosePivotMedianOfMedians(A[l..l + numGroups - 1])
 ## 3. Dual-Pivot Quicksort
-    Function DualPivotQuicksort(A, low, high):
-        If low < high:
-            // Ensure left pivot (P1) <= right pivot (P2)
-            If A[low] > A[high]:
-                Swap(A[low], A[high])
-                
-            p1 = A[low]
-            p2 = A[high]
-            
-            i = low + 1   // Boundary for elements < P1
-            k = low + 1   // Current element index
-            j = high - 1  // Boundary for elements > P2
-            
-            While k <= j:
-                If A[k] < p1:
-                    Swap(A[k], A[i])
-                    i = i + 1
-                Else if A[k] >= p2:
-                    While A[j] > p2 and k < j:
-                        j = j - 1
-                    Swap(A[k], A[j])
-                    j = j - 1
-                    // Check the swapped element again
-                    If A[k] < p1:
-                        Swap(A[k], A[i])
-                        i = i + 1
-                k = k + 1
-                
-            // Move the two pivots to their correct final positions
-            i = i - 1
-            j = j + 1
-            Swap(A[low], A[i])
-            Swap(A[high], A[j])
-            
-            // Recursively sort the 3 partitions (< P1, between P1 & P2, > P2)
-            DualPivotQuicksort(A, low, i - 1)
-            DualPivotQuicksort(A, i + 1, j - 1)
-            DualPivotQuicksort(A, j + 1, high)
+     ALGORITHM DualPivotQuickSort(A[l..r])
+     //Sorts a subarray using dual-pivot quicksort strategy
+     //Input: Subarray A[l..r]
+     //Output: Subarray A[l..r] sorted in nondecreasing order
+     if l < r
+         if A[l] > A[r]
+             swap(A[l], A[r])
+         p ← A[l]
+         q ← A[r]
+         
+         j ← l + 1; g ← r - 1; k ← l + 1
+         while k ≤ g
+             if A[k] < p
+                 swap(A[k], A[j])
+                 j ← j + 1
+             else if A[k] ≥ q
+                 while A[g] > q and k < g
+                     g ← g - 1
+                 swap(A[k], A[g])
+                 g ← g - 1
+                 if A[k] < p
+                     swap(A[k], A[j])
+                     j ← j + 1
+             k ← k + 1
+             
+         j ← j - 1
+         g ← g + 1
+         swap(A[l], A[j])
+         swap(A[r], A[g])
+         
+         DualPivotQuickSort(A[l..j - 1])
+         DualPivotQuickSort(A[j + 1..g - 1])
+         DualPivotQuickSort(A[g + 1..r])
 ## 4. pdqsort (Pattern-defeating Quicksort)
-    Function pdqsort_core(A, low, high, bad_partition_limit):
-        size = high - low + 1
-        
-        // 1. Fallback 1: Array is too small -> Use Insertion Sort
-        If size < 24:
-            InsertionSort(A, low, high)
-            Return
-            
-        // 2. Fallback 2: Prevent O(N^2) -> Switch to Heapsort if too many bad partitions
-        If bad_partition_limit == 0:
-            Heapsort(A, low, high)
-            Return
-            
-        // 3. Smart Pivot Selection
-        If size > 128:
-            pivot_idx = Ninther(A, low, high) // Median of 3 medians
-        Else:
-            pivot_idx = Median_of_3(A, low, high) // Median of 3
-            
-        // 4. Partitioning (using branchless partition for hardware optimization)
-        Swap(A[low], A[pivot_idx])
-        split_idx = Branchless_Partition(A, low, high)
-        
-        // 5. Check for bad partition (Pattern-defeating capability)
-        len_left = split_idx - low
-        len_right = high - split_idx
-        If len_left < (size / 8) Or len_right < (size / 8):
-            bad_partition_limit = bad_partition_limit - 1
-            
-        // 6. Handle duplicates (if the element next to the pivot equals the pivot)
-        If A[split_idx + 1] == A[split_idx]:
-            split_idx = Partition_Equal_Elements(A, split_idx + 1, high, A[split_idx])
-            
-        // 7. Smart Recursion: Always recurse on the smaller partition first to save Stack space
-        If len_left < len_right:
-            pdqsort_core(A, low, split_idx - 1, bad_partition_limit)
-            pdqsort_core(A, split_idx + 1, high, bad_partition_limit)
-        Else:
-            pdqsort_core(A, split_idx + 1, high, bad_partition_limit)
-            pdqsort_core(A, low, split_idx - 1, bad_partition_limit)
-    
-    // Main wrapper function called by the user
-    Function pdqsort(A):
-        bad_partition_limit = Log2(Length(A))
-        pdqsort_core(A, 0, Length(A) - 1, bad_partition_limit)
-
+     ALGORITHM PdqSort(A[l..r], badAllowed)
+     //Sorts a subarray using Pattern-Defeating Quicksort strategy
+     //Input: Subarray A[l..r], and the allowed number of bad partitions
+     //Output: Subarray A[l..r] sorted in nondecreasing order
+     //Initial call: PdqSort(A, 0, n-1, floor(log2(n)))
+     
+     n ← r - l + 1
+     if n < 24
+         InsertionSort(A[l..r])
+         return
+     
+     if badAllowed = 0
+         HeapSort(A[l..r])
+         return
+     
+     p_idx ← PdqChoosePivot(A[l..r]) // Uses Tukey's Ninther strategy for large arrays
+     swap(A[l], A[p_idx])
+     
+     s ← Partition(A, l, r)
+     
+     // Check for "bad partition" (highly unbalanced split)
+     leftSize ← s - l
+     rightSize ← r - s
+     if leftSize < n / 8 or rightSize < n / 8
+         badAllowed ← badAllowed - 1
+         // In practice, pdqsort scrambles some elements here to break patterns
+         
+     PdqSort(A[l..s - 1], badAllowed)
+     PdqSort(A[s + 1..r], badAllowed)
+     
 ## Complexity Summary
 
 The table below summarizes the theoretical time and space complexities for each pivot selection strategy. Note that while some algorithms share the same asymptotic notation, their constant factors (real-world execution times) vary significantly.
