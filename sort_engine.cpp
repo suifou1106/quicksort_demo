@@ -28,7 +28,7 @@ extern "C" {
         return i + 1;
     }
 
-    // Các thuật toán kinh điển giữ nguyên
+    // Các thuật toán kinh điển
     EXPORT void qs_first(int* arr, int low, int high) {
         if (low < high) {
             int pi = partition(arr, low, high, low);
@@ -62,7 +62,7 @@ extern "C" {
         }
     }
 
-    // --- HÀM MỚI: Gọi trực tiếp pdqsort ---
+    // pdqsort
     EXPORT void qs_pdqsort(int* arr, int low, int high) {
         // Hàm pdqsort nhận con trỏ đầu và con trỏ ngay sau phần tử cuối cùng
         pdqsort(arr + low, arr + high + 1);
