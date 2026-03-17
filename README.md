@@ -4,6 +4,15 @@
 3. run g++ -shared -o sort_engine.dll sort_engine.cpp -O3 every time you change sort_engine.cpp file.
 4. run python ./gui_app.py
 ## (recommend run all above on virtual machine like venv or conda)
+# Quicksort Evolution: A Comprehensive Pivot Strategy Benchmark
+
+## Introduction
+
+Quicksort is one of the most efficient and widely used sorting algorithms in computer science, operating on the **Divide and Conquer** principle. Its core mechanism involves selecting a "pivot" element, partitioning the array so that smaller elements are placed on the left and larger elements on the right, and then recursively applying the same process to the resulting sub-arrays.
+
+However, Quicksort's real-world performance is heavily dependent on **how the pivot is chosen**. A good pivot divides the array into two roughly equal halves, resulting in highly optimized execution. A poor pivot—especially when dealing with already sorted, reverse-sorted, or highly duplicated data—can degrade the algorithm's performance drastically, causing stack overflows and severe slowdowns.
+
+This repository explores the evolution of Quicksort by implementing, analyzing, and benchmarking various pivot selection strategies. It traces the journey from the classic, naive implementations of the 1960s to modern, hardware-optimized hybrid algorithms like `pdqsort`.
 # Pseudo code
 ## 1. Standard Quicksort Framework & Basic Pivots
      --- MAIN QUICKSORT FRAMEWORK -- //
@@ -170,3 +179,20 @@
     Function pdqsort(A):
         bad_partition_limit = Log2(Length(A))
         pdqsort_core(A, 0, Length(A) - 1, bad_partition_limit)
+
+## Complexity Summary
+
+The table below summarizes the theoretical time and space complexities for each pivot selection strategy. Note that while some algorithms share the same asymptotic notation, their constant factors (real-world execution times) vary significantly.
+
+| Pivot Strategy | Best Time | Average Time | Worst Time | Space (Worst) | Key Characteristic |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **First / Last / Middle** | $O(N \log N)$ | $O(N \log N)$ | $O(N^2)$ | $O(N)$ | Simple to implement but highly vulnerable to sorted or patterned arrays. |
+| **Random** | $O(N \log N)$ | $O(N \log N)$ | $O(N^2)$ | $O(N)$ | Avoids the worst-case on structured data, but random number generation adds overhead. |
+| **Median of 3** | $O(N \log N)$ | $O(N \log N)$ | $O(N^2)$ | $O(\log N)$ | Excellent heuristic for real-world data; avoids $O(N^2)$ on sorted arrays. |
+| **Median of Medians** | $O(N \log N)$ | $O(N \log N)$ | $O(N \log N)$ | $O(\log N)$ | Mathematically guarantees $O(N \log N)$ in all cases, but practically slow due to heavy constant factors. |
+| **Dual-Pivot** | $O(N \log N)$ | $O(N \log N)$ | $O(N^2)$ | $O(\log N)$ | Uses 2 pivots to divide data into 3 partitions. Highly cache-efficient; default in Java. |
+| **pdqsort (Hybrid)** | $O(N)$* | $O(N \log N)$ | $O(N \log N)$ | $O(\log N)$ | Falls back to Heapsort to strictly prevent $O(N^2)$ and uses Insertion Sort for small arrays. |
+
+*\* `pdqsort` achieves linear time $O(N)$ if its pattern-defeating heuristics detect that the input array is already sorted.*
+
+---
