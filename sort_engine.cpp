@@ -35,11 +35,17 @@ extern "C"
         return i + 1;
     }
 
+<<<<<<< HEAD
     // Các thuật toán kinh điển giữ nguyên
     EXPORT void qs_first(int *arr, int low, int high)
     {
         if (low < high)
         {
+=======
+    // Các thuật toán kinh điển
+    EXPORT void qs_first(int* arr, int low, int high) {
+        if (low < high) {
+>>>>>>> b9f744b1de0aa97483e5c469d2775a8a8fdcedcf
             int pi = partition(arr, low, high, low);
             qs_first(arr, low, pi - 1);
             qs_first(arr, pi + 1, high);
@@ -89,6 +95,7 @@ extern "C"
         return mid; // mid bây giờ là trung vị của 3 phần tử
     }
 
+<<<<<<< HEAD
     EXPORT void qs_median_of_3(int *arr, int low, int high)
     {
         if (low < high)
@@ -200,6 +207,10 @@ extern "C"
     // --- HÀM MỚI: Gọi trực tiếp pdqsort ---
     EXPORT void qs_pdqsort(int *arr, int low, int high)
     {
+=======
+    // pdqsort
+    EXPORT void qs_pdqsort(int* arr, int low, int high) {
+>>>>>>> b9f744b1de0aa97483e5c469d2775a8a8fdcedcf
         // Hàm pdqsort nhận con trỏ đầu và con trỏ ngay sau phần tử cuối cùng
         pdqsort(arr + low, arr + high + 1);
     }
