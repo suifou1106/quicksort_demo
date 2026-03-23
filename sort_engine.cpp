@@ -8,7 +8,7 @@ extern "C"
 #ifdef _WIN32
 #define EXPORT __declspec(dllexport)
 #else
-#define EXPORT
+// #define EXPORT
 #endif
 
     void swap_elem(int &a, int &b)
@@ -18,7 +18,7 @@ extern "C"
         b = temp;
     }
 
-    int partition(int *arr, int low, int high, int pivot_idx)
+    int lomuto_partition(int *arr, int low, int high, int pivot_idx)
     {
         swap_elem(arr[pivot_idx], arr[high]);
         int pivot = arr[high];
@@ -35,14 +35,44 @@ extern "C"
         return i + 1;
     }
 
+    int hoare_partition(int *arr, int low, int high, int pivot_idx)
+    {
+        // 1. Đưa pivot ngẫu nhiên về vị trí an toàn ở đầu mảng (low)
+        swap_elem(arr[low], arr[pivot_idx]);
+        int pivot = arr[low];
+
+        // 2. Khởi tạo 2 con trỏ ở ngoài cùng 2 ranh giới mảng
+        int i = low - 1;
+        int j = high + 1;
+
+        // 3. Tiến hành vòng lặp quét từ 2 đầu vào giữa
+        while (true)
+        {
+            do
+            {
+                i++;
+            } while (arr[i] < pivot);
+
+            do
+            {
+                j--;
+            } while (arr[j] > pivot);
+
+            if (i >= j)
+                return j; // Trả về chỉ số phân cắt
+
+            swap_elem(arr[i], arr[j]);
+        }
+    }
+
     // Các thuật toán kinh điển giữ nguyên
     EXPORT void qs_first(int *arr, int low, int high)
     {
         if (low < high)
         {
-            int pi = partition(arr, low, high, low);
-            qs_first(arr, low, pi - 1);
-            qs_first(arr, pi + 1, high);
+            int pivot = hoare_partition(arr, low, high, low);
+            qs_first(arr, low, pivot);
+            qs_first(arr, pivot + 1, high);
         }
     }
 
@@ -50,9 +80,9 @@ extern "C"
     {
         if (low < high)
         {
-            int pi = partition(arr, low, high, high);
-            qs_last(arr, low, pi - 1);
-            qs_last(arr, pi + 1, high);
+            int pivot = hoare_partition(arr, low, high, high);
+            qs_last(arr, low, pivot);
+            qs_last(arr, pivot + 1, high);
         }
     }
 
@@ -60,9 +90,9 @@ extern "C"
     {
         if (low < high)
         {
-            int pi = partition(arr, low, high, low + (high - low) / 2);
-            qs_middle(arr, low, pi - 1);
-            qs_middle(arr, pi + 1, high);
+            int pivot = hoare_partition(arr, low, high, low + (high - low) / 2);
+            qs_middle(arr, low, pivot);
+            qs_middle(arr, pivot + 1, high);
         }
     }
 
@@ -71,9 +101,19 @@ extern "C"
         if (low < high)
         {
             int random_idx = low + rand() % (high - low + 1);
-            int pi = partition(arr, low, high, random_idx);
-            qs_random(arr, low, pi - 1);
-            qs_random(arr, pi + 1, high);
+            int pivot = hoare_partition(arr, low, high, random_idx);
+            qs_random(arr, low, pivot);
+            qs_random(arr, pivot + 1, high);
+        }
+    }
+    EXPORT void qs_random_lomuto(int *arr, int low, int high)
+    {
+        if (low < high)
+        {
+            int random_idx = low + rand() % (high - low + 1);
+            int pivot = lomuto_partition(arr, low, high, random_idx);
+            qs_random_lomuto(arr, low, pivot - 1);
+            qs_random_lomuto(arr, pivot + 1, high);
         }
     }
     // 5. TRUNG VỊ CỦA 3 (Median of 3)
@@ -94,9 +134,9 @@ extern "C"
         if (low < high)
         {
             int pivot_idx = median_of_3(arr, low, high);
-            int pi = partition(arr, low, high, pivot_idx);
-            qs_median_of_3(arr, low, pi - 1);
-            qs_median_of_3(arr, pi + 1, high);
+            int pivot = hoare_partition(arr, low, high, pivot_idx);
+            qs_median_of_3(arr, low, pivot);
+            qs_median_of_3(arr, pivot + 1, high);
         }
     }
 
@@ -142,9 +182,9 @@ extern "C"
         if (low < high)
         {
             int pivot_idx = get_median_of_medians(arr, low, high);
-            int pi = partition(arr, low, high, pivot_idx);
-            qs_median_of_medians(arr, low, pi - 1);
-            qs_median_of_medians(arr, pi + 1, high);
+            int pivot = hoare_partition(arr, low, high, pivot_idx);
+            qs_median_of_medians(arr, low, pivot);
+            qs_median_of_medians(arr, pivot + 1, high);
         }
     }
 
